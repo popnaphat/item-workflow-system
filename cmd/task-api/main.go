@@ -1,12 +1,21 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"task-api/internal/auth"
 	"task-api/internal/item"
+	"task-api/internal/mylog"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -20,6 +29,14 @@ import (
 // DELETE 	/items/:id
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	// FOO: Bar
+	fmt.Println("FOO: ", os.Getenv("FOO"))
+	fmt.Println("TEST: ", os.Getenv("TEST"))
+
 	// Connect database
 	db, err := gorm.Open(
 		postgres.Open(
@@ -43,7 +60,8 @@ func main() {
 		"http://127.0.0.1:8000",
 	}
 	r.Use(cors.New(config))
-
+	r.Use(mylog.Logger())
+	// r.Use(Logger2())
 	r.GET("/version", func(c *gin.Context) {
 		version, err := GetLatestDBVersion(db)
 		if err != nil {
@@ -52,16 +70,79 @@ func main() {
 		}
 		c.JSON(http.StatusOK, gin.H{"version": version})
 	})
+	r.GET("/test", func(ctx *gin.Context) {
+		fmt.Println("---- Test -----")
+		// nil, false
+		value, hasValue := ctx.Get("example3")
+		log.Printf("default example? = %v, %T \n", value, value)
+		if hasValue {
+			log.Printf("example = %v, %T \n", value, value)
+		} else {
+			log.Println("example does not exists")
+		}
+		// for i := 0; i < 4; i++ {
+		// 	fmt.Println(i)
+		// 	time.Sleep(1 * time.Second)
+		// }
+		ctx.JSON(201, "test response")
+	})
 
 	// Register router
-	r.POST("/items", controller.CreateItem)
-	r.GET("/items", controller.FindItems)
-	r.PATCH("/items/:id", controller.UpdateItemStatus)
+	items := r.Group("/items")
+	// items.Use(mylog.Logger2())
+	items.Use(auth.BasicAuth([]auth.Credential{
+		{"admin", "secret"},
+		{"admin2", "1234"},
+	}))
+	{
+		items.POST("", controller.CreateItem)
+		items.GET("", controller.FindItems)
+		items.PATCH("/:id", controller.UpdateItemStatus)
+	}
 
 	// Start server
-	if err := r.Run(); err != nil {
-		log.Panic(err)
+	// if err := r.Run(); err != nil {
+	// 	log.Panic(err)
+	// }
+	// endless.DefaultHammerTime = 10 * time.Second
+	// if err := endless.ListenAndServe(":8080", r); err != nil {
+	// 	log.Panic(err.Error())
+
+	// }
+
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: r.Handler(),
 	}
+
+	go func() {
+		// service connections
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 5 seconds.
+	quit := make(chan os.Signal, 1)
+	// kill (no param) default send syscall.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall. SIGKILL but can"t be catch, so don't need add it
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutdown Server ...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server Shutdown:", err)
+	}
+	// catching ctx.Done(). timeout of 5 seconds.
+	select {
+	case <-ctx.Done():
+		log.Println("timeout of 5 seconds.")
+	}
+	log.Println("Server exiting")
 }
 
 type GooseDBVersion struct {

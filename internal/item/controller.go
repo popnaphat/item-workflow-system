@@ -3,6 +3,7 @@ package item
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"task-api/internal/model"
@@ -85,6 +86,7 @@ func (controller Controller) FindItems(ctx *gin.Context) {
 		request model.RequestFindItem
 	)
 
+	log.Println("find items")
 	if err := ctx.BindQuery(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": err,
