@@ -1,8 +1,10 @@
 package user
 
 import (
+	"fmt"
 	"net/http"
 	"task-api/internal/model"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -30,13 +32,21 @@ func (controller Controller) Login(ctx *gin.Context) {
 		return
 	}
 
-	_, err := controller.Service.Login(request)
+	token, err := controller.Service.Login(request)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": err.Error(),
 		})
 		return
 	}
+	ctx.SetCookie(
+		"token",
+		fmt.Sprintf("Bearer %v", token), int(10*time.Second),
+		"/",
+		"localhost",
+		false,
+		true, // http-only cookie flag
+	)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "login succeeed",

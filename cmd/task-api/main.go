@@ -11,6 +11,7 @@ import (
 	"task-api/internal/auth"
 	"task-api/internal/item"
 	"task-api/internal/mylog"
+	"task-api/internal/user"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -86,14 +87,17 @@ func main() {
 		// }
 		ctx.JSON(201, "test response")
 	})
+	userController := user.NewController(db, os.Getenv("JWT_SECRET"))
+	r.POST("/login", userController.Login)
 
 	// Register router
 	items := r.Group("/items")
 	// items.Use(mylog.Logger2())
-	items.Use(auth.BasicAuth([]auth.Credential{
-		{"admin", "secret"},
-		{"admin2", "1234"},
-	}))
+	// items.Use(auth.BasicAuth([]auth.Credential{
+	// 	{"admin", "secret"},
+	// 	{"admin2", "1234"},
+	// }))
+	items.Use(auth.Guard(os.Getenv("JWT_SECRET")))
 	{
 		items.POST("", controller.CreateItem)
 		items.GET("", controller.FindItems)
@@ -111,7 +115,7 @@ func main() {
 	// }
 
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":2024",
 		Handler: r.Handler(),
 	}
 

@@ -31,6 +31,7 @@ func Guard(secret string) gin.HandlerFunc {
 		}
 
 		log.Printf("Token verified successfully. Claims: %+v\\n", token.Claims)
+		c.Next()
 	}
 }
 
@@ -45,6 +46,7 @@ func verifyToken(tokenString string, secret string) (*jwt.Token, error) {
 		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
 		return []byte(secret), nil
 	})
+	// token.Claims.GetAudience()
 
 	// Check for verification errors
 	if err != nil {
