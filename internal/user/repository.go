@@ -22,7 +22,7 @@ func (repo Repository) FindOneByUsername(username string) (model.User, error) {
 	db := repo.Database
 	db = db.Where("username = ?", username)
 
-	if err := db.Find(&result).Error; err != nil {
+	if err := db.First(&result).Error; err != nil { // Use First instead of Find
 		return result, err
 	}
 

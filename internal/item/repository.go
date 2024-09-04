@@ -49,3 +49,13 @@ func (repo Repository) FindByID(id uint) (model.Item, error) {
 func (repo Repository) Replace(item model.Item) error {
 	return repo.Database.Model(&item).Updates(item).Error
 }
+func (repo Repository) Delete(id uint) (model.Item, error) {
+	var result model.Item
+	if err := repo.Database.First(&result, id).Error; err != nil {
+		return result, err
+	}
+	if err := repo.Database.Delete(&result).Error; err != nil {
+		return result, err
+	}
+	return result, nil
+}

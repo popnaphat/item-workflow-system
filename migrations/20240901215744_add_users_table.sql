@@ -1,17 +1,16 @@
 -- +goose Up
 CREATE TABLE
     users (
-        id bigserial NOT NULL,
+        id BIGSERIAL PRIMARY KEY,
         username varchar(50) NOT NULL UNIQUE,
-        password varchar(100) NOT NULL,
-        PRIMARY KEY (id)
+        password varchar(100) NOT NULL
     );
 -- +goose StatementBegin
 SELECT 'up SQL query';
 -- +goose StatementEnd
 
 -- +goose Down
-DROP TABLE IF EXISTS users;
+DROP TABLE users;
 
 -- +goose StatementBegin
 SELECT 'down SQL query';

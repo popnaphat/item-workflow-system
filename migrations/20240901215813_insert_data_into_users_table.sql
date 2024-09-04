@@ -1,17 +1,13 @@
 -- +goose Up
-UPDATE items
-SET
-    quantity = 10;
-
+INSERT INTO users (username, password)
+VALUES ('admin', '$2a$14$P7N/hEXVuUx2cWokInnK7.3ZE6ZVO0EKnUtbXQKDv/UOmILUk.0VK');
 -- +goose StatementBegin
 SELECT
     'up SQL query';
 
 -- +goose StatementEnd
 -- +goose Down
-UPDATE items
-SET
-    quantity = 0;
+TRUNCATE TABLE users;
 
 -- +goose StatementBegin
 SELECT

@@ -1,14 +1,13 @@
 -- +goose Up
-ALTER TABLE items ADD quantity integer NOT NULL;
-
+INSERT INTO items (title, amount, quantity, status, owner_id)
+VALUES ('สาย LAN', 1000, 10, 'PENDING', 1);
 -- +goose StatementBegin
 SELECT
     'up SQL query';
 
 -- +goose StatementEnd
 -- +goose Down
-ALTER TABLE items
-DROP COLUMN quantity;
+TRUNCATE TABLE items;
 
 -- +goose StatementBegin
 SELECT

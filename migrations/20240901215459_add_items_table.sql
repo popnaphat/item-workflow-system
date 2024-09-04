@@ -1,9 +1,12 @@
 -- +goose Up
 CREATE TABLE
     items (
-        id bigserial NOT NULL,
-        title text NOT NULL,
-        PRIMARY KEY (id)
+        id BIGSERIAL PRIMARY KEY, 
+        title TEXT NOT NULL,
+        amount REAL NOT NULL,
+        quantity INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        owner_id INTEGER NOT NULL
     );
 
 -- +goose StatementBegin
@@ -12,7 +15,7 @@ SELECT
 
 -- +goose StatementEnd
 -- +goose Down
-DROP TABLE IF EXISTS items;
+DROP TABLE items;
 
 -- +goose StatementBegin
 SELECT
