@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -31,6 +32,30 @@ func Guard(secret string) gin.HandlerFunc {
 		}
 
 		log.Printf("Token verified successfully. Claims: %+v\\n", token.Claims)
+		// ยืดอายุของ token โดยการสร้าง token ใหม่
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			// ดึง username จาก claims
+			username := claims["aud"].([]interface{})[0].(string)
+
+			// สร้าง token ใหม่ด้วยฟังก์ชัน CreateToken (ที่อยู่ใน package auth)
+			newToken, err := CreateToken(username, secret)
+			if err != nil {
+				log.Printf("Failed to create new token: %v\n", err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
+			}
+
+			// ตั้งค่า cookie ใหม่สำหรับ token ที่ขยายเวลา
+			c.SetCookie(
+				"token",
+				fmt.Sprintf("Bearer %v", newToken),
+				int(10*time.Minute.Seconds()), // ขยายเวลาเป็น 10 นาที
+				"/",
+				"localhost", // เปลี่ยนเป็น domain ของคุณ
+				false,       // ใช้ true สำหรับ HTTPS
+				true,        // http-only
+			)
+		}
 		c.Next()
 	}
 }

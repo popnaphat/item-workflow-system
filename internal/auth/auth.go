@@ -12,7 +12,7 @@ func CreateToken(username string, secret string) (string, error) {
 
 	t = jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.RegisteredClaims{
 		Audience:  jwt.ClaimStrings{username},
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Second)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
 	})
 
 	signedToken, err := t.SignedString([]byte(secret))
