@@ -42,7 +42,7 @@ func (controller Controller) Login(ctx *gin.Context) {
 	ctx.SetCookie(
 		"userID",
 		fmt.Sprintf("%v", userID),
-		int(60*time.Second), // set a realistic expiration time
+		int(10*time.Minute.Seconds()), // set a realistic expiration time
 		"/",
 		"localhost", // replace with your domain
 		false,       // secure: set to true in production (for HTTPS)
@@ -52,7 +52,7 @@ func (controller Controller) Login(ctx *gin.Context) {
 	ctx.SetCookie(
 		"token",
 		fmt.Sprintf("Bearer %v", token),
-		int(60*time.Second),
+		int(10*time.Minute.Seconds()),
 		"/",
 		"localhost",
 		false,
