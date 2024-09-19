@@ -48,6 +48,7 @@ func (controller Controller) Login(ctx *gin.Context) {
 		false,       // secure: set to true in production (for HTTPS)
 		true,        // http-only
 	)
+
 	// Set token cookie
 	ctx.SetCookie(
 		"token",
@@ -61,5 +62,17 @@ func (controller Controller) Login(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "login succeed",
+	})
+}
+func (controller Controller) Logout(ctx *gin.Context) {
+	// Set cookies with expired time to delete them
+	ctx.SetCookie("token", "", -1, "/", "localhost", false, true)  // HTTP-only, secure
+	ctx.SetCookie("userID", "", -1, "/", "localhost", false, true) // HTTP-only, secure
+
+	// Optionally, you can also clear any other session data here
+
+	// Respond to the client
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Logged out successfully, cookies cleared.",
 	})
 }

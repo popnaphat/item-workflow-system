@@ -14,6 +14,7 @@ import (
 	"task-api/internal/user"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -43,7 +44,14 @@ func main() {
 
 	// Router
 	r := gin.Default()
-
+	// CORS configuration
+	config := cors.Config{
+		AllowOrigins:     []string{os.Getenv("ALLOWED_IP")},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}
+	r.Use(cors.New(config))
 	r.GET("/version", func(c *gin.Context) {
 		version, err := GetLatestDBVersion(db)
 		if err != nil {
@@ -55,7 +63,7 @@ func main() {
 
 	userController := user.NewController(db, os.Getenv("JWT_SECRET"))
 	r.POST("/login", userController.Login)
-
+	r.GET("/logout", userController.Logout)
 	// Register router
 	items := r.Group("/items")
 

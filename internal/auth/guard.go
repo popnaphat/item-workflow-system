@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,6 +14,20 @@ import (
 
 func Guard(secret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// อ่าน userID จากคุกกี้
+		userIDStr, err := c.Cookie("userID")
+		if err != nil {
+			log.Println("Authorization required")
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		userID, err := strconv.ParseUint(userIDStr, 10, 32) // แปลงเป็น uint
+		if err != nil {
+			log.Println("Invalid user ID")
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
 		// Extract token "Bearer xxx" from cookie
 		auth, err := c.Cookie("token")
 		if err != nil {
@@ -53,6 +68,16 @@ func Guard(secret string) gin.HandlerFunc {
 				"/",
 				"localhost", // เปลี่ยนเป็น domain ของคุณ
 				false,       // ใช้ true สำหรับ HTTPS
+				true,        // http-only
+			)
+			// Set the userID in a separate cookie
+			c.SetCookie(
+				"userID",
+				fmt.Sprintf("%v", userID),
+				int(10*time.Minute.Seconds()), // set a realistic expiration time
+				"/",
+				"localhost", // replace with your domain
+				false,       // secure: set to true in production (for HTTPS)
 				true,        // http-only
 			)
 		}
