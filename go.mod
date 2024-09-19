@@ -9,7 +9,7 @@ require (
 	gorm.io/gorm v1.25.11
 )
 
-require github.com/gin-contrib/cors v1.7.2 // indirect
+require github.com/gin-contrib/cors v1.7.2
 
 require (
 	github.com/bytedance/sonic v1.12.1 // indirect
